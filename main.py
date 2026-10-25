@@ -36,7 +36,17 @@ def main(page: ft.Page):
     lista_strumenti = ft.ListView(expand=True, spacing=5, padding=10, auto_scroll=True)
 
     # Tutti i TextField per le info necessarie per aggiungere un nuovo strumento (tipo, marca, anno, contatore posti)
-    # TODO
+    # devo creare 3 caselle di testo che l'utente potrà riempire per inserire i dati di un nuovon studente
+    input_tipo= ft.TextField(label='Tipo', hint_text='Es. Chitarra', expand=True)
+    input_marca= ft.TextField(label='Marca', hint_text='Es. Fender', expand=True)
+    input_anno= ft.TextField(label='Anno', hint_text='Es. 2021', expand=True)
+
+    #ft.TextField permette all'utente di inserire del testo da tastiera all'interno dell'applicazione
+    # label è l'etichetta descrittiva del campo per indicare all'utente cosa deve inserire in quel campo
+    # hint_text è un testo di suggerimento (appare in grigio chiaro) e scompare appena si inizia a scrivere nella casella
+    # expand indica che questo campo di testo deve espandersi orizzontalmente per occupare lo spazio disponibile
+    #in modo flessibile
+
 
     # --- FUNZIONI APP ---
     def aggiorna_lista_strumenti():
@@ -53,16 +63,51 @@ def main(page: ft.Page):
     def conferma_responsabile(e):
         deposito.set_responsabile(input_responsabile.value)
         txt_responsabile.value = f"Responsabile: {deposito.get_responsabile()}"
+        page.update()
 
     # Handlers per la gestione dei pulsanti utili all'inserimento di un nuovo strumento
-    # TODO
+    # ogni volta che schiaccia sul pulsante viene eseguito questo codice
+    def aggiungi_strumento(e):
+        try:
+            # prende il testo inserito dell'utente e lo pulisce da eventuali spazi vuoti
+            tipo = input_tipo.value.strip()
+            marca= input_marca.value.strip()
+
+            if not tipo or not marca:
+                #se manca o la marca o il tipo fa apparire il messaggio di errore
+                alert.show_alert("❌ I campi 'Tipo' e 'Marca' sono obbligatori.")
+                # con return interrompe l'esecuzione della funzione, in modo da evitare
+                # di aggiungere uno strumento incompleto
+                return
+
+            anno_str= input_anno.value.strip()
+            anno= int(anno_str) if anno_str else 0
+
+            # Chiamata al metodo del deposito per aggiungere lo strumento
+            deposito.aggiungi_strumento(tipo,marca,anno)
+
+            # Aggiorna la vista e pulisce i campi di input
+            aggiorna_lista_strumenti()
+            # svuotamento delle caselle di testo azzerandole, pronte per i nuovi inserimenti
+            input_tipo.value = ""
+            input_marca.value = ""
+            input_anno.value = ""
+            # dice alla pagina di aggiornarsi per mostrare le modifiche appena fatte
+            page.update()
+
+        except ValueError:
+            # se l'utente inserisce nella casella dell'anno una stringa con lettere
+            alert.show_alert("❌ L'anno deve essere un valore numerico valido.")
+        except Exception as ex:
+            # cattura tutti gli altri errori possibili
+            alert.show_alert(f"❌ Errore durante l'inserimento: {ex}")
 
     # --- EVENTI ---
     toggle_cambia_tema = ft.Switch(label="Tema scuro", value=True, on_change=cambia_tema)
     pulsante_conferma_responsabile = ft.Button("Conferma", on_click=conferma_responsabile)
 
     # Pulsanti per la gestione dell'inserimento di un nuovo strumento
-    # TODO
+    pulsante_aggiungi = ft.Button("Aggiungi Strumento", on_click=aggiungi_strumento)
 
     # --- LAYOUT ---
     page.add(
@@ -80,7 +125,16 @@ def main(page: ft.Page):
                alignment=ft.MainAxisAlignment.CENTER),
 
         # Sezione 3
-        # TODO
+        # ft.Divider(): crea una linea orizzontale di separazione sullo schermo.
+        ft.Divider(),
+        # creazione di un'intestazione di testo di dimensione 20
+        ft.Text("Aggiungi Nuovo Strumento", size=20),
+
+        # lista dei componenti che vengono inseriti: controls=[input_tipo, input_marca, input_anno, pulsante_aggiungi]
+        ft.Row(spacing=15,
+               controls=[input_tipo, input_marca, input_anno, pulsante_aggiungi],
+               # allinea tutto il blocco al centro della pagina orizzontalmente
+               alignment=ft.MainAxisAlignment.CENTER),
 
         # Sezione 4
         ft.Divider(),
